@@ -2,8 +2,9 @@ import csv
 import cv2
 import numpy as np
 from keras.models import Sequential, Model
-from keras.layers import Flatten, Dense, Lambda, Convolution2D, MaxPooling2D, Cropping2D
+from keras.layers import Flatten, Dense, Lambda, Convolution2D, MaxPooling2D, Cropping2D, Dropout
 from keras.optimizers import Adam
+from keras.regularizers import l2, activity_l2
 import argparse
 import matplotlib.pyplot as plt
 import os
@@ -115,9 +116,14 @@ if __name__ == '__main__':
 	model.add(Convolution2D(64,3,3, activation='relu'))
 	model.add(Convolution2D(64,3,3, activation='relu'))
 	model.add(Flatten())
-	model.add(Dense(100, activation='relu'))
-	model.add(Dense(50, activation='relu'))
-	model.add(Dense(10, activation='relu'))
+	model.add(Dense(120, W_regularizer=l2(0.001), activation='relu'))
+	model.add(Dropout(.25))
+	model.add(Dense(60, W_regularizer=l2(0.001), activation='relu'))
+	model.add(Dropout(.25))
+	model.add(Dense(30, W_regularizer=l2(0.001), activation='relu'))
+	model.add(Dropout(.25))
+	model.add(Dense(10, W_regularizer=l2(0.001), activation='relu'))
+	model.add(Dropout(.25))
 	model.add(Dense(1))
 
 	model.compile(loss='mse', optimizer=Adam(lr=1e-4))
