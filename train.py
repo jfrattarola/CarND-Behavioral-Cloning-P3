@@ -62,6 +62,7 @@ def load_data(data_path):
 		for line in reader:
 			lines.append(line)				
 	train_samples, validation_samples = train_test_split(lines, test_size=0.2)
+	return train_samples, validation_samples
 
 
 if __name__ == '__main__':
