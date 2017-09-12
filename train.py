@@ -12,6 +12,7 @@ import random
 
 slash='\\'
 steering_correction = 0.2
+nb_epoch=5
 
 def generator(data_path, samples, batch_size=32):
 	num_samples = len(samples)
@@ -108,7 +109,7 @@ if __name__ == '__main__':
 		samples_per_epoch = len(train_samples), 
 		validation_data=validation_generator, 
 		nb_val_samples=len(validation_samples),
-		nb_epoch=20)
+		nb_epoch=nb_epoch)
 
 	#print the keys contained in the history object
 	print(history_object.history.keys())
