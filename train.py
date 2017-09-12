@@ -13,24 +13,12 @@ from sklearn.model_selection import train_test_split
 import random
 
 slash='\\'
+not_slash='/'
 steering_correction = 0.2
 nb_epoch=20
 
-def rgb2gray(rgb):
-	if len(rgb.shape)==4:
-		G = np.zeros([len(rgb), rgb.shape[1], rgb.shape[2], 1])
-		for i, img in enumerate(rgb):
-			r,g,b = img[:,:,0], img[:,:,1], img[:,:,2]
-			gray =  (0.2989*r + 0.5870*g + 0.1140*b)
-			G[i] = gray.reshape(rgb.shape[1], rgb.shape[2], 1)
-			return G
-	else:
-		r, g, b = rgb[:,:0], rgb[:,:,1], rgb[:,:,2]
-		gray = (0.2989*r + 0.5870*g + 0.1140*b)
-		return gray
-
 def generator(data_path, samples, batch_size=32):
-	if len(data_path) > 0 and data_path[-1] != '\\' and data_path[-1] != '/':
+	if len(data_path) > 0 and data_path[-1] != slash and data_path[-1] != not_slash:
 		data_path += slash
 	num_samples = len(samples)
 	while 1: #loop forever to keep generator from early termination
@@ -41,16 +29,20 @@ def generator(data_path, samples, batch_size=32):
 			images=[]
 			angles=[]
 			for batch_sample in batch_samples:
-				center_img_path = batch_sample[0]
-				left_img_path = batch_sample[1]
-				right_img_path = batch_sample[2]
+				try:
+					center_angle = float(batch_sample[3])
+				except:
+					continue				
+				center_img_path = batch_sample[0].replace(not_slash, slash)
+				left_img_path = batch_sample[1].replace(not_slash, slash)
+				right_img_path = batch_sample[2].replace(not_slash, slash)
 				center_image = cv2.imread('{}IMG{}{}'.format(data_path, slash, center_img_path.split(slash)[-1]))
-				left_image = cv2.imread('{}IMG{}{}'.format(data_path, slash, left_img_path.split(slash)[-1]))
-				right_image = cv2.imread('{}IMG{}{}'.format(data_path, slash, right_img_path.split(slash)[-1]))
-				center_angle = float(batch_sample[3])
-				left_angle = center_angle + steering_correction
-				right_angle = center_angle - steering_correction
-				if center_image is not None and left_image is not None and right_image is not None:
+				center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
+				#left_image = cv2.imread('{}IMG{}{}'.format(data_path, slash, left_img_path.split(slash)[-1]))
+				#right_image = cv2.imread('{}IMG{}{}'.format(data_path, slash, right_img_path.split(slash)[-1]))
+				#left_angle = center_angle + steering_correction
+				#right_angle = center_angle - steering_correction
+				if center_image is not None: # and left_image is not None and right_image is not None:
 					if np.random.randint(2) == 1:
 						images.append(center_image)
 						#images.append(left_image)
@@ -67,7 +59,7 @@ def generator(data_path, samples, batch_size=32):
 						#angles.append(left_angle * (-1))
 						#angles.append(right_angle * (-1))
 				else:
-					print('Error: could not load {}'.format(curr))
+					print('Error: could not load {}'.format(batch_sample))
 			X_train = np.array(images)
 			y_train = np.array(angles)
 			yield sklearn.utils.shuffle(X_train, y_train)
@@ -116,14 +108,12 @@ if __name__ == '__main__':
 	model.add(Convolution2D(64,3,3, activation='relu'))
 	model.add(Convolution2D(64,3,3, activation='relu'))
 	model.add(Flatten())
-	model.add(Dense(120, W_regularizer=l2(0.001), activation='relu'))
-	model.add(Dropout(.25))
-	model.add(Dense(60, W_regularizer=l2(0.001), activation='relu'))
-	model.add(Dropout(.25))
-	model.add(Dense(30, W_regularizer=l2(0.001), activation='relu'))
-	model.add(Dropout(.25))
+	model.add(Dense(100, W_regularizer=l2(0.001), activation='relu'))
+	#model.add(Dropout(.2))
+	model.add(Dense(50, W_regularizer=l2(0.001), activation='relu'))
+	#model.add(Dropout(.2))
 	model.add(Dense(10, W_regularizer=l2(0.001), activation='relu'))
-	model.add(Dropout(.25))
+	#model.add(Dropout(.2))
 	model.add(Dense(1))
 
 	model.compile(loss='mse', optimizer=Adam(lr=1e-4))
