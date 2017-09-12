@@ -12,11 +12,13 @@ import random
 
 slash='\\'
 steering_correction = 0.2
-nb_epoch=5
+nb_epoch=20
 
 def generator(data_path, samples, batch_size=32):
+	if len(data_path) > 0 and data_path[-1] != '\\' and data_path[-1] != '/':
+		data_path += slash
 	num_samples = len(samples)
-	while True: #loop forever to keep generator from early termination
+	while 1: #loop forever to keep generator from early termination
 		random.shuffle(samples)
 		for offset in range(0, num_samples, batch_size):
 			batch_samples = samples[offset:offset+batch_size]
@@ -78,14 +80,14 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 
 	train_samples, validation_samples = load_data(args.data_path)
-	train_generator = generator(args.data_path, train_samples)
-	validation_generator = generator(args.data_path, validation_samples)
+	train_generator = generator(args.data_path, train_samples, batch_size=32)
+	validation_generator = generator(args.data_path, validation_samples, batch_size=32)
 
 #	ch, row, col = 3, 80, 320 #Trimmed image format
 
 	model = Sequential()
 
-	model.add(Lambda(lambda x: x/127.5 -1., 
+	model.add(Lambda(lambda x: x/255. -0.5, 
 		input_shape=(160,320,3)))
 	model.add(Cropping2D(cropping=((70,25),(0,0))))
 	model.add(Convolution2D(24,5,5, subsample=(2,2), activation='relu'))
@@ -97,9 +99,9 @@ if __name__ == '__main__':
 	model.add(Convolution2D(64,3,3, activation='relu'))
 	model.add(Convolution2D(64,3,3, activation='relu'))
 	model.add(Flatten())
-	model.add(Dense(100))
-	model.add(Dense(50))
-	model.add(Dense(10))
+	model.add(Dense(100, activation='relu'))
+	model.add(Dense(50, activation='relu'))
+	model.add(Dense(10, activation='relu'))
 	model.add(Dense(1))
 
 	model.compile(loss='mse', optimizer='adam')
@@ -122,5 +124,7 @@ if __name__ == '__main__':
 	plt.xlabel('epoch')
 	plt.legend(['training set', 'validation set'], loc='upper right')
 	plt.show()
+
+	import gc; gc.collect()
 
 	model.save('model.h5')
