@@ -29,7 +29,7 @@ def generator(data_path, samples, batch_size=32):
 				center_image = cv2.imread('{}IMG{}{}'.format(data_path, slash, center_img_path.split(slash)[-1]))
 				left_image = cv2.imread('{}IMG{}{}'.format(data_path, slash, left_img_path.split(slash)[-1]))
 				right_image = cv2.imread('{}IMG{}{}'.format(data_path, slash, right_img_path.split(slash)[-1]))
-				center_angle = float(line[3])
+				center_angle = float(batch_sample[3])
 				left_angle = center_angle + steering_correction
 				right_angle = center_angle - steering_correction
 				if center_image is not None and left_image is not None and right_image is not None:
@@ -80,13 +80,12 @@ if __name__ == '__main__':
 	train_generator = generator(args.data_path, train_samples)
 	validation_generator = generator(args.data_path, validation_samples)
 
-	ch, row, col = 3, 80, 320 #Trimmed image format
+#	ch, row, col = 3, 80, 320 #Trimmed image format
 
 	model = Sequential()
 
 	model.add(Lambda(lambda x: x/127.5 -1., 
-		input_shape=(ch,row,col), 
-		output_shape=(ch,row,col)))
+		input_shape=(160,320,3)))
 	model.add(Cropping2D(cropping=((70,25),(0,0))))
 	model.add(Convolution2D(24,5,5, subsample=(2,2), activation='relu'))
 	#model.add(MaxPooling2D())
